@@ -1,0 +1,6 @@
+# Kiro folder
+.kiro/
+
+# Markdown files (except README.md)
+*.md
+!README.md

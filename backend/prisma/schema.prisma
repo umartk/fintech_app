@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  kycStatus    KycStatus @default(PENDING) @map("kyc_status")
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  profile        UserProfile?
+  account        Account?
+  paymentMethods PaymentMethod[]
+  refreshTokens  RefreshToken[]
+  otpCodes       OtpCode[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id          String    @id @default(uuid())
+  userId      String    @unique @map("user_id")
+  firstName   String?   @map("first_name")
+  lastName    String?   @map("last_name")
+  phoneNumber String?   @map("phone_number")
+  dateOfBirth DateTime? @map("date_of_birth")
+  address     Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Account {
+  id        String        @id @default(uuid())
+  userId    String        @unique @map("user_id")
+  balance   Decimal       @default(0) @db.Decimal(18, 2)
+  currency  String        @default("USD")
+  status    AccountStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outgoingTransactions Transaction[] @relation("FromAccount")
+  incomingTransactions Transaction[] @relation("ToAccount")
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id            String            @id @default(uuid())
+  fromAccountId String            @map("from_account_id")
+  toAccountId   String            @map("to_account_id")
+  amount        Decimal           @db.Decimal(18, 2)
+  currency      String            @default("USD")
+  type          TransactionType   @default(TRANSFER)
+  status        TransactionStatus @default(PENDING)
+  description   String?
+  metadata      Json?
+  idempotencyKey String?          @unique @map("idempotency_key")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  processedAt   DateTime?         @map("processed_at")
+
+  fromAccount Account @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount   Account @relation("ToAccount", fields: [toAccountId], references: [id])
+
+  @@index([fromAccountId])
+  @@index([toAccountId])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model PaymentMethod {
+  id                  String            @id @default(uuid())
+  userId              String            @map("user_id")
+  type                PaymentMethodType
+  provider            String
+  maskedAccountNumber String            @map("masked_account_number")
+  encryptedData       String            @map("encrypted_data")
+  isVerified          Boolean           @default(false) @map("is_verified")
+  isDefault           Boolean           @default(false) @map("is_default")
+  isActive            Boolean           @default(true) @map("is_active")
+  metadata            Json?
+  createdAt           DateTime          @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  deviceId  String?  @map("device_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  code      String
+  expiresAt DateTime @map("expires_at")
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("otp_codes")
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum TransactionType {
+  TRANSFER
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentMethodType {
+  BANK_ACCOUNT
+  DEBIT_CARD
+  CREDIT_CARD
+}
