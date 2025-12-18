@@ -217,7 +217,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             <Input
               label="First Name"
               value={formData.firstName}
-              onChangeText={(text) => setFormData({ ...formData, firstName: text })}
+              onChangeText={(text: string) => setFormData({ ...formData, firstName: text })}
               error={errors.firstName}
               editable={isEditing}
               style={!isEditing && styles.disabledInput}
@@ -226,7 +226,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             <Input
               label="Last Name"
               value={formData.lastName}
-              onChangeText={(text) => setFormData({ ...formData, lastName: text })}
+              onChangeText={(text: string) => setFormData({ ...formData, lastName: text })}
               error={errors.lastName}
               editable={isEditing}
               style={!isEditing && styles.disabledInput}
@@ -235,7 +235,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             <Input
               label="Phone Number"
               value={formData.phoneNumber}
-              onChangeText={(text) => setFormData({ ...formData, phoneNumber: text })}
+              onChangeText={(text: string) => setFormData({ ...formData, phoneNumber: text })}
               error={errors.phoneNumber}
               placeholder="+1234567890"
               keyboardType="phone-pad"
@@ -246,7 +246,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             <Input
               label="Date of Birth"
               value={formData.dateOfBirth}
-              onChangeText={(text) => setFormData({ ...formData, dateOfBirth: text })}
+              onChangeText={(text: string) => setFormData({ ...formData, dateOfBirth: text })}
               error={errors.dateOfBirth}
               placeholder="YYYY-MM-DD"
               editable={isEditing}
