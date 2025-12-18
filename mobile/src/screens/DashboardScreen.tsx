@@ -8,15 +8,18 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer, Text, Card, LoadingSpinner, Button } from '../components';
-import { colors, spacing, borderRadius } from '../theme';
+import { ScreenContainer, Text, Card, LoadingSpinner, Button, ErrorMessage } from '../components';
+import { colors, spacing } from '../theme';
 import { useAccountStore } from '../store/accountStore';
 import { useTransactionStore, Transaction } from '../store/transactionStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
+import { useAppStore } from '../store/appStore';
 import { websocketService } from '../services/websocket';
 import api from '../services/api';
 import { MainStackParamList } from '../navigation/types';
+import { parseError } from '../utils';
+import { useToast } from '../context';
 
 type DashboardNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Dashboard'>;
 
@@ -28,6 +31,8 @@ export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<DashboardNavigationProp>();
   const { user } = useAuthStore();
   const { unreadCount } = useNotificationStore();
+  const { isOnline } = useAppStore();
+  const { showInfo } = useToast();
   const {
     account,
     isLoading: accountLoading,
@@ -62,14 +67,18 @@ export const DashboardScreen: React.FC = () => {
       const response = await api.get('/api/users/account');
       setAccount(response.data);
       await cacheAccountData();
-    } catch (error: any) {
-      setAccountError(error.response?.data?.message || 'Failed to load account data');
+    } catch (error: unknown) {
+      const parsed = parseError(error);
+      setAccountError(parsed.message);
       // Try to load cached data on error
       await loadCachedData();
+      if (parsed.isNetworkError && !isOnline) {
+        showInfo('Showing cached data while offline');
+      }
     } finally {
       setAccountLoading(false);
     }
-  }, [setAccount, setAccountLoading, setAccountError, cacheAccountData, loadCachedData]);
+  }, [setAccount, setAccountLoading, setAccountError, cacheAccountData, loadCachedData, isOnline, showInfo]);
 
   // Fetch recent transactions from API
   const fetchTransactions = useCallback(async () => {
@@ -81,8 +90,9 @@ export const DashboardScreen: React.FC = () => {
       });
       setTransactions(response.data.transactions || []);
       await cacheTransactions();
-    } catch (error: any) {
-      setTransactionsError(error.response?.data?.message || 'Failed to load transactions');
+    } catch (error: unknown) {
+      const parsed = parseError(error);
+      setTransactionsError(parsed.message);
       // Try to load cached transactions on error
       await loadCachedTransactions();
     } finally {
@@ -168,15 +178,11 @@ export const DashboardScreen: React.FC = () => {
     if (accountError && !account) {
       return (
         <Card variant="elevated" style={styles.balanceCard}>
-          <Text variant="body" color={colors.error} align="center">
-            {accountError}
-          </Text>
-          <Button
-            title="Retry"
-            onPress={fetchAccountData}
-            variant="outline"
-            size="sm"
-            style={styles.retryButton}
+          <ErrorMessage
+            message={accountError}
+            variant="inline"
+            onRetry={fetchAccountData}
+            testID="account-error"
           />
         </Card>
       );
@@ -265,15 +271,11 @@ export const DashboardScreen: React.FC = () => {
     if (transactionsError) {
       return (
         <View style={styles.emptyState}>
-          <Text variant="body" color={colors.error} align="center">
-            {transactionsError}
-          </Text>
-          <Button
-            title="Retry"
-            onPress={fetchTransactions}
-            variant="outline"
-            size="sm"
-            style={styles.retryButton}
+          <ErrorMessage
+            message={transactionsError}
+            variant="card"
+            onRetry={fetchTransactions}
+            testID="transactions-error"
           />
         </View>
       );

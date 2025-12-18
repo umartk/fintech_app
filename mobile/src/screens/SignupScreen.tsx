@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { ScreenContainer, Text, Input, Button } from '../components';
+import { ScreenContainer, Text, Input, Button, ErrorMessage } from '../components';
 import { colors, spacing } from '../theme';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/auth';
-import { signupSchema } from '../utils/validation';
+import { signupSchema, parseError } from '../utils';
+import { useToast } from '../context';
 
 type SignupScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Signup'>;
 
 export const SignupScreen: React.FC = () => {
   const navigation = useNavigation<SignupScreenNavigationProp>();
   const { setPendingVerification } = useAuthStore();
+  const { showError, showInfo } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +23,7 @@ export const SignupScreen: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -46,13 +49,18 @@ export const SignupScreen: React.FC = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setApiError(null);
     try {
       const response = await authService.signup({ email, password });
       setPendingVerification(response.userId, email);
+      showInfo('Please check your email for verification code');
       navigation.navigate('OTPVerification', { email, userId: response.userId });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Signup failed';
-      Alert.alert('Signup Failed', errorMessage);
+      const parsed = parseError(error);
+      setApiError(parsed.message);
+      if (parsed.isNetworkError) {
+        showError('Please check your internet connection');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -73,11 +81,25 @@ export const SignupScreen: React.FC = () => {
         </View>
 
         <View style={styles.form}>
+          {apiError && (
+            <ErrorMessage
+              message={apiError}
+              variant="card"
+              onDismiss={() => setApiError(null)}
+              onRetry={handleSignup}
+              style={styles.errorMessage}
+              testID="signup-error"
+            />
+          )}
+
           <Input
             label="Email"
             placeholder="Enter your email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -89,7 +111,10 @@ export const SignupScreen: React.FC = () => {
             label="Password"
             placeholder="Create a password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+            }}
             secureTextEntry={!showPassword}
             error={errors.password}
             testID="signup-password-input"
@@ -105,7 +130,10 @@ export const SignupScreen: React.FC = () => {
             label="Confirm Password"
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+            }}
             secureTextEntry={!showConfirmPassword}
             error={errors.confirmPassword}
             testID="signup-confirm-password-input"
@@ -173,6 +201,9 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: spacing.xl,
+  },
+  errorMessage: {
+    marginBottom: spacing.md,
   },
   passwordHints: {
     marginBottom: spacing.md,

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, RenderOptions } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { LoginScreen } from '../../screens/LoginScreen';
 import { SignupScreen } from '../../screens/SignupScreen';
@@ -13,6 +13,15 @@ import { OTPVerificationScreen } from '../../screens/OTPVerificationScreen';
 import { BiometricSetupScreen } from '../../screens/BiometricSetupScreen';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/auth';
+import { ToastProvider } from '../../context';
+
+// Wrapper component with providers
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return <ToastProvider>{children}</ToastProvider>;
+};
+
+const customRender = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -54,7 +63,7 @@ describe('LoginScreen', () => {
   });
 
   it('renders login form correctly', () => {
-    const { getByTestId, getByText } = render(<LoginScreen />);
+    const { getByTestId, getByText } = customRender(<LoginScreen />);
 
     expect(getByText('Welcome Back')).toBeTruthy();
     expect(getByTestId('login-email-input')).toBeTruthy();
@@ -63,7 +72,7 @@ describe('LoginScreen', () => {
   });
 
   it('shows validation errors for empty fields', async () => {
-    const { getByTestId, queryByText } = render(<LoginScreen />);
+    const { getByTestId, queryByText } = customRender(<LoginScreen />);
 
     fireEvent.press(getByTestId('login-submit-button'));
 
@@ -73,7 +82,7 @@ describe('LoginScreen', () => {
   });
 
   it('shows validation error for invalid email', async () => {
-    const { getByTestId, queryByText } = render(<LoginScreen />);
+    const { getByTestId, queryByText } = customRender(<LoginScreen />);
 
     fireEvent.changeText(getByTestId('login-email-input'), 'invalid-email');
     fireEvent.changeText(getByTestId('login-password-input'), 'password123');
@@ -92,7 +101,7 @@ describe('LoginScreen', () => {
     };
     (authService.login as jest.Mock).mockResolvedValue(mockResponse);
 
-    const { getByTestId } = render(<LoginScreen />);
+    const { getByTestId } = customRender(<LoginScreen />);
 
     fireEvent.changeText(getByTestId('login-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('login-password-input'), 'Password123');
@@ -106,22 +115,23 @@ describe('LoginScreen', () => {
     });
   });
 
-  it('shows error alert on login failure', async () => {
+  it('shows error message on login failure', async () => {
     (authService.login as jest.Mock).mockRejectedValue(new Error('Invalid credentials'));
 
-    const { getByTestId } = render(<LoginScreen />);
+    const { getByTestId, findByTestId } = customRender(<LoginScreen />);
 
     fireEvent.changeText(getByTestId('login-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('login-password-input'), 'Password123');
     fireEvent.press(getByTestId('login-submit-button'));
 
+    // Now we show error in ErrorMessage component instead of Alert
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Login Failed', 'Invalid credentials');
+      expect(getByTestId('login-error')).toBeTruthy();
     });
   });
 
   it('navigates to signup screen', () => {
-    const { getByText } = render(<LoginScreen />);
+    const { getByText } = customRender(<LoginScreen />);
 
     fireEvent.press(getByText('Sign Up'));
 
@@ -131,7 +141,7 @@ describe('LoginScreen', () => {
   it('shows biometric button when enabled', () => {
     useAuthStore.setState({ biometricEnabled: true });
 
-    const { getByTestId } = render(<LoginScreen />);
+    const { getByTestId } = customRender(<LoginScreen />);
 
     expect(getByTestId('login-biometric-button')).toBeTruthy();
   });
@@ -139,7 +149,7 @@ describe('LoginScreen', () => {
   it('hides biometric button when disabled', () => {
     useAuthStore.setState({ biometricEnabled: false });
 
-    const { queryByTestId } = render(<LoginScreen />);
+    const { queryByTestId } = customRender(<LoginScreen />);
 
     expect(queryByTestId('login-biometric-button')).toBeNull();
   });
@@ -151,7 +161,7 @@ describe('SignupScreen', () => {
   });
 
   it('renders signup form correctly', () => {
-    const { getByTestId, getAllByText } = render(<SignupScreen />);
+    const { getByTestId, getAllByText } = customRender(<SignupScreen />);
 
     // "Create Account" appears in both header and button
     expect(getAllByText('Create Account').length).toBeGreaterThanOrEqual(1);
@@ -162,7 +172,7 @@ describe('SignupScreen', () => {
   });
 
   it('shows validation error for weak password', async () => {
-    const { getByTestId, queryByText } = render(<SignupScreen />);
+    const { getByTestId, queryByText } = customRender(<SignupScreen />);
 
     fireEvent.changeText(getByTestId('signup-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('signup-password-input'), 'weak');
@@ -176,7 +186,7 @@ describe('SignupScreen', () => {
   });
 
   it('shows validation error for password mismatch', async () => {
-    const { getByTestId, queryByText } = render(<SignupScreen />);
+    const { getByTestId, queryByText } = customRender(<SignupScreen />);
 
     fireEvent.changeText(getByTestId('signup-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('signup-password-input'), 'Password123');
@@ -192,7 +202,7 @@ describe('SignupScreen', () => {
     const mockResponse = { userId: 'user-123', requiresOTP: true, message: 'OTP sent' };
     (authService.signup as jest.Mock).mockResolvedValue(mockResponse);
 
-    const { getByTestId } = render(<SignupScreen />);
+    const { getByTestId } = customRender(<SignupScreen />);
 
     fireEvent.changeText(getByTestId('signup-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('signup-password-input'), 'Password123');
@@ -211,23 +221,24 @@ describe('SignupScreen', () => {
     });
   });
 
-  it('shows error alert on signup failure', async () => {
+  it('shows error message on signup failure', async () => {
     (authService.signup as jest.Mock).mockRejectedValue(new Error('Email already exists'));
 
-    const { getByTestId } = render(<SignupScreen />);
+    const { getByTestId } = customRender(<SignupScreen />);
 
     fireEvent.changeText(getByTestId('signup-email-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('signup-password-input'), 'Password123');
     fireEvent.changeText(getByTestId('signup-confirm-password-input'), 'Password123');
     fireEvent.press(getByTestId('signup-submit-button'));
 
+    // Now we show error in ErrorMessage component instead of Alert
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Signup Failed', 'Email already exists');
+      expect(getByTestId('signup-error')).toBeTruthy();
     });
   });
 
   it('navigates to login screen', () => {
-    const { getByText } = render(<SignupScreen />);
+    const { getByText } = customRender(<SignupScreen />);
 
     fireEvent.press(getByText('Sign In'));
 

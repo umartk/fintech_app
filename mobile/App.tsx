@@ -5,16 +5,20 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { StatusBar, useColorScheme, AppState, AppStateStatus } from 'react-native';
+import { StatusBar, useColorScheme, AppState, AppStateStatus, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
 import { RootNavigator } from './src/navigation';
 import { colors } from './src/theme';
 import { notificationService } from './src/services/notifications';
 import { websocketService } from './src/services/websocket';
 import { useNotificationStore } from './src/store/notificationStore';
 import { useAuthStore } from './src/store/authStore';
+import { useAppStore } from './src/store/appStore';
 import { RootStackParamList } from './src/navigation/types';
+import { ErrorBoundary, NetworkStatus } from './src/components';
+import { ToastProvider } from './src/context';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -22,6 +26,18 @@ function App(): React.JSX.Element {
   const appState = useRef(AppState.currentState);
   const { addNotification, loadNotifications, loadSettings } = useNotificationStore();
   const { isAuthenticated } = useAuthStore();
+  const { setOnline } = useAppStore();
+
+  // Monitor network connectivity
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setOnline(state.isConnected ?? false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [setOnline]);
 
   // Initialize notifications and load stored data
   useEffect(() => {
@@ -97,16 +113,29 @@ function App(): React.JSX.Element {
     };
   }, [isAuthenticated]);
 
+  const handleRetryConnection = () => {
+    NetInfo.fetch().then((state) => {
+      setOnline(state.isConnected ?? false);
+    });
+  };
+
   return (
-    <SafeAreaProvider>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
-      />
-      <NavigationContainer ref={navigationRef}>
-        <RootNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <ToastProvider>
+          <StatusBar
+            barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+            backgroundColor={colors.background}
+          />
+          <View style={{ flex: 1 }}>
+            <NetworkStatus onRetry={handleRetryConnection} testID="network-status" />
+            <NavigationContainer ref={navigationRef}>
+              <RootNavigator />
+            </NavigationContainer>
+          </View>
+        </ToastProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

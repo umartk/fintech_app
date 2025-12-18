@@ -2,21 +2,22 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer, Text, Card, Button, Input } from '../components';
-import { colors, spacing, borderRadius } from '../theme';
+import { ScreenContainer, Text, Card, Button, Input, ErrorMessage, ConfirmationModal } from '../components';
+import { colors, spacing } from '../theme';
 import { useAccountStore } from '../store/accountStore';
 import { useTransactionStore } from '../store/transactionStore';
+import { useAppStore } from '../store/appStore';
 import api from '../services/api';
 import { notificationService } from '../services/notifications';
 import { MainStackParamList } from '../navigation/types';
-import { validateEmail } from '../utils/validation';
+import { validateEmail, parseError } from '../utils';
+import { useToast } from '../context';
 
 type SendMoneyNavigationProp = NativeStackNavigationProp<MainStackParamList, 'SendMoney'>;
 
@@ -28,12 +29,16 @@ export const SendMoneyScreen: React.FC = () => {
   const navigation = useNavigation<SendMoneyNavigationProp>();
   const { account } = useAccountStore();
   const { addTransaction } = useTransactionStore();
+  const { isOnline } = useAppStore();
+  const { showSuccess, showError } = useToast();
 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ recipient?: string; amount?: string }>({});
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const formatCurrency = (value: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -67,7 +72,14 @@ export const SendMoneyScreen: React.FC = () => {
   const handleSendMoney = useCallback(async () => {
     if (!validateForm()) return;
 
+    // Check offline status (Requirements: 12.2)
+    if (!isOnline) {
+      showError('Cannot send money while offline');
+      return;
+    }
+
     setIsLoading(true);
+    setApiError(null);
     try {
       const response = await api.post('/api/transactions/transfer', {
         recipientEmail: recipient.trim(),
@@ -87,27 +99,18 @@ export const SendMoneyScreen: React.FC = () => {
         recipient.trim()
       );
 
-      Alert.alert(
-        'Transfer Initiated',
-        `${formatCurrency(parseFloat(amount))} is being sent to ${recipient}`,
-        [
-          {
-            text: 'View Details',
-            onPress: () => navigation.replace('TransactionDetail', { transactionId: transaction.id }),
-          },
-          {
-            text: 'Done',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to send money. Please try again.';
-      Alert.alert('Transfer Failed', message);
+      showSuccess(`${formatCurrency(parseFloat(amount))} sent successfully!`);
+      setShowConfirmation(true);
+    } catch (error: unknown) {
+      const parsed = parseError(error);
+      setApiError(parsed.message);
+      if (parsed.isNetworkError) {
+        showError('Please check your internet connection');
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [validateForm, recipient, amount, description, addTransaction, navigation]);
+  }, [validateForm, recipient, amount, description, addTransaction, isOnline, showSuccess, showError, account?.currency]);
 
   const handleAmountChange = (text: string) => {
     // Only allow numbers and one decimal point
@@ -144,6 +147,18 @@ export const SendMoneyScreen: React.FC = () => {
               {formatCurrency(account?.balance || 0, account?.currency)}
             </Text>
           </Card>
+
+          {/* Error Message */}
+          {apiError && (
+            <ErrorMessage
+              message={apiError}
+              variant="card"
+              onDismiss={() => setApiError(null)}
+              onRetry={handleSendMoney}
+              style={styles.errorMessage}
+              testID="send-error"
+            />
+          )}
 
           {/* Send Form */}
           <View style={styles.form}>
@@ -209,11 +224,30 @@ export const SendMoneyScreen: React.FC = () => {
             title={isLoading ? 'Sending...' : 'Send Money'}
             onPress={handleSendMoney}
             loading={isLoading}
-            disabled={isLoading || !recipient || !amount}
+            disabled={isLoading || !recipient || !amount || !isOnline}
             testID="send-submit-button"
           />
+          {!isOnline && (
+            <Text variant="caption" color={colors.warning} align="center" style={styles.offlineText}>
+              You are offline. Sending money is not available.
+            </Text>
+          )}
         </View>
       </KeyboardAvoidingView>
+
+      {/* Success Confirmation Modal */}
+      <ConfirmationModal
+        visible={showConfirmation}
+        title="Transfer Initiated"
+        message={`${formatCurrency(parseFloat(amount) || 0)} is being sent to ${recipient}`}
+        type="success"
+        confirmLabel="Done"
+        onDismiss={() => {
+          setShowConfirmation(false);
+          navigation.goBack();
+        }}
+        testID="send-confirmation-modal"
+      />
     </ScreenContainer>
   );
 };
@@ -232,6 +266,9 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     marginTop: spacing.xs,
+  },
+  errorMessage: {
+    marginBottom: spacing.md,
   },
   form: {
     marginBottom: spacing.md,
@@ -253,5 +290,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     padding: spacing.md,
     paddingBottom: spacing.lg,
+  },
+  offlineText: {
+    marginTop: spacing.sm,
   },
 });

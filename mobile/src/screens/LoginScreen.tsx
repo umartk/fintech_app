@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { ScreenContainer, Text, Input, Button } from '../components';
+import { ScreenContainer, Text, Input, Button, ErrorMessage } from '../components';
 import { colors, spacing } from '../theme';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/auth';
-import { loginSchema } from '../utils/validation';
+import { loginSchema, parseError } from '../utils';
+import { useToast } from '../context';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const { setTokens, setUser, biometricEnabled } = useAuthStore();
+  const { showError, showSuccess } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const result = loginSchema.safeParse({ email, password });
@@ -40,13 +43,18 @@ export const LoginScreen: React.FC = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setApiError(null);
     try {
       const response = await authService.login({ email, password });
       await setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
+      showSuccess('Welcome back!');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      Alert.alert('Login Failed', errorMessage);
+      const parsed = parseError(error);
+      setApiError(parsed.message);
+      if (parsed.isNetworkError) {
+        showError('Please check your internet connection');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -77,11 +85,25 @@ export const LoginScreen: React.FC = () => {
         </View>
 
         <View style={styles.form}>
+          {apiError && (
+            <ErrorMessage
+              message={apiError}
+              variant="card"
+              onDismiss={() => setApiError(null)}
+              onRetry={handleLogin}
+              style={styles.errorMessage}
+              testID="login-error"
+            />
+          )}
+
           <Input
             label="Email"
             placeholder="Enter your email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -93,7 +115,10 @@ export const LoginScreen: React.FC = () => {
             label="Password"
             placeholder="Enter your password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+            }}
             secureTextEntry={!showPassword}
             error={errors.password}
             testID="login-password-input"
@@ -159,6 +184,9 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: spacing.xl,
+  },
+  errorMessage: {
+    marginBottom: spacing.md,
   },
   forgotPassword: {
     alignSelf: 'flex-end',

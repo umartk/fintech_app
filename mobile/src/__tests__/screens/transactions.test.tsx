@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, RenderOptions } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { SendMoneyScreen } from '../../screens/SendMoneyScreen';
 import { TransactionHistoryScreen } from '../../screens/TransactionHistoryScreen';
@@ -14,8 +14,18 @@ import { ReceiveMoneyScreen } from '../../screens/ReceiveMoneyScreen';
 import { useAccountStore } from '../../store/accountStore';
 import { useTransactionStore } from '../../store/transactionStore';
 import { useAuthStore } from '../../store/authStore';
+import { useAppStore } from '../../store/appStore';
 import api from '../../services/api';
 import { websocketService } from '../../services/websocket';
+import { ToastProvider } from '../../context';
+
+// Wrapper component with providers
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return <ToastProvider>{children}</ToastProvider>;
+};
+
+const customRender = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -105,10 +115,11 @@ describe('SendMoneyScreen', () => {
     jest.clearAllMocks();
     useAccountStore.setState({ account: mockAccount });
     useTransactionStore.setState({ transactions: [] });
+    useAppStore.setState({ isOnline: true });
   });
 
   it('renders send money form correctly', () => {
-    const { getByTestId, getByText } = render(<SendMoneyScreen />);
+    const { getByTestId, getByText } = customRender(<SendMoneyScreen />);
 
     expect(getByText('Available Balance')).toBeTruthy();
     expect(getByTestId('send-recipient-input')).toBeTruthy();
@@ -118,7 +129,7 @@ describe('SendMoneyScreen', () => {
   });
 
   it('disables submit button when recipient is empty', () => {
-    const { getByTestId } = render(<SendMoneyScreen />);
+    const { getByTestId } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-amount-input'), '100');
 
@@ -128,7 +139,7 @@ describe('SendMoneyScreen', () => {
   });
 
   it('shows validation error for invalid email on submit', async () => {
-    const { getByTestId, queryByText } = render(<SendMoneyScreen />);
+    const { getByTestId, queryByText } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'invalid-email');
     fireEvent.changeText(getByTestId('send-amount-input'), '100');
@@ -140,7 +151,7 @@ describe('SendMoneyScreen', () => {
   });
 
   it('disables submit button when amount is empty', () => {
-    const { getByTestId } = render(<SendMoneyScreen />);
+    const { getByTestId } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'test@example.com');
 
@@ -150,7 +161,7 @@ describe('SendMoneyScreen', () => {
   });
 
   it('shows validation error for insufficient funds on submit', async () => {
-    const { getByTestId, queryByText } = render(<SendMoneyScreen />);
+    const { getByTestId, queryByText } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'test@example.com');
     fireEvent.changeText(getByTestId('send-amount-input'), '2000');
@@ -165,7 +176,7 @@ describe('SendMoneyScreen', () => {
     const mockResponse = { data: { transaction: mockTransaction } };
     (api.post as jest.Mock).mockResolvedValue(mockResponse);
 
-    const { getByTestId } = render(<SendMoneyScreen />);
+    const { getByTestId } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'recipient@example.com');
     fireEvent.changeText(getByTestId('send-amount-input'), '100');
@@ -181,38 +192,36 @@ describe('SendMoneyScreen', () => {
     });
   });
 
-  it('shows success alert on successful transfer', async () => {
+  it('shows success confirmation on successful transfer', async () => {
     const mockResponse = { data: { transaction: mockTransaction } };
     (api.post as jest.Mock).mockResolvedValue(mockResponse);
 
-    const { getByTestId } = render(<SendMoneyScreen />);
+    const { getByTestId } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'recipient@example.com');
     fireEvent.changeText(getByTestId('send-amount-input'), '100');
     fireEvent.press(getByTestId('send-submit-button'));
 
+    // Now we show confirmation modal instead of Alert
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'Transfer Initiated',
-        expect.stringContaining('recipient@example.com'),
-        expect.any(Array)
-      );
+      expect(getByTestId('send-confirmation-modal')).toBeTruthy();
     });
   });
 
-  it('shows error alert on transfer failure', async () => {
+  it('shows error message on transfer failure', async () => {
     (api.post as jest.Mock).mockRejectedValue({
       response: { data: { message: 'Recipient not found' } },
     });
 
-    const { getByTestId } = render(<SendMoneyScreen />);
+    const { getByTestId } = customRender(<SendMoneyScreen />);
 
     fireEvent.changeText(getByTestId('send-recipient-input'), 'recipient@example.com');
     fireEvent.changeText(getByTestId('send-amount-input'), '100');
     fireEvent.press(getByTestId('send-submit-button'));
 
+    // Now we show error in ErrorMessage component instead of Alert
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Transfer Failed', 'Recipient not found');
+      expect(getByTestId('send-error')).toBeTruthy();
     });
   });
 });
