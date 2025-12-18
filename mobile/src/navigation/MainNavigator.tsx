@@ -9,8 +9,10 @@ import { SendMoneyScreen } from '../screens/SendMoneyScreen';
 import { ReceiveMoneyScreen } from '../screens/ReceiveMoneyScreen';
 import { TransactionDetailScreen } from '../screens/TransactionDetailScreen';
 import { TransactionHistoryScreen } from '../screens/TransactionHistoryScreen';
-// Placeholder screens - will be implemented in later tasks
-import { PlaceholderScreen } from '../screens/PlaceholderScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { SecuritySettingsScreen } from '../screens/SecuritySettingsScreen';
+import { PaymentMethodsScreen } from '../screens/PaymentMethodsScreen';
+import { AddPaymentMethodScreen } from '../screens/AddPaymentMethodScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -51,22 +53,22 @@ export const MainNavigator: React.FC = () => {
       />
       <Stack.Screen
         name="Profile"
-        component={PlaceholderScreen}
+        component={ProfileScreen}
         options={{ title: 'Profile' }}
       />
       <Stack.Screen
         name="SecuritySettings"
-        component={PlaceholderScreen}
+        component={SecuritySettingsScreen}
         options={{ title: 'Security Settings' }}
       />
       <Stack.Screen
         name="PaymentMethods"
-        component={PlaceholderScreen}
+        component={PaymentMethodsScreen}
         options={{ title: 'Payment Methods' }}
       />
       <Stack.Screen
         name="AddPaymentMethod"
-        component={PlaceholderScreen}
+        component={AddPaymentMethodScreen}
         options={{ title: 'Add Payment Method' }}
       />
     </Stack.Navigator>

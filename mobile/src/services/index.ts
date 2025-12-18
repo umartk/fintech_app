@@ -5,6 +5,8 @@
 export { default as api } from './api';
 export { websocketService } from './websocket';
 export { authService } from './auth';
+export { userService } from './user';
+export { paymentMethodService } from './paymentMethod';
 export type {
   SignupRequest,
   SignupResponse,
@@ -14,3 +16,13 @@ export type {
   LoginResponse,
   UserProfile,
 } from './auth';
+export type {
+  UserProfile as UserProfileDetailed,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  AccountBalance,
+} from './user';
+export type {
+  PaymentMethod,
+  AddPaymentMethodRequest,
+} from './paymentMethod';

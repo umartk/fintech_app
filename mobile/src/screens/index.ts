@@ -12,3 +12,7 @@ export { SendMoneyScreen } from './SendMoneyScreen';
 export { ReceiveMoneyScreen } from './ReceiveMoneyScreen';
 export { TransactionDetailScreen } from './TransactionDetailScreen';
 export { TransactionHistoryScreen } from './TransactionHistoryScreen';
+export { ProfileScreen } from './ProfileScreen';
+export { SecuritySettingsScreen } from './SecuritySettingsScreen';
+export { PaymentMethodsScreen } from './PaymentMethodsScreen';
+export { AddPaymentMethodScreen } from './AddPaymentMethodScreen';
