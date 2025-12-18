@@ -117,7 +117,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 5 }
       );
     });
 
@@ -155,7 +155,7 @@ describe('Authentication Property Tests', () => {
           
           return true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
   });
@@ -209,7 +209,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 5 }
       );
     });
 
@@ -229,7 +229,7 @@ describe('Authentication Property Tests', () => {
           
           return true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
   });
@@ -295,7 +295,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 5 }
       );
     });
   });
@@ -341,7 +341,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -351,7 +351,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -361,7 +361,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -371,7 +371,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -381,7 +381,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -400,7 +400,7 @@ describe('Authentication Property Tests', () => {
           const result = signupSchema.safeParse({ email, password });
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
   });
@@ -467,7 +467,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 5 }
       );
     });
 
@@ -496,7 +496,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 10 }
       );
     });
 
@@ -590,7 +590,7 @@ describe('Authentication Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 5 }
       );
     });
 

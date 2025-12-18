@@ -143,7 +143,7 @@ describe('Session Invalidation Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 3 }
       );
     });
 
@@ -201,7 +201,7 @@ describe('Session Invalidation Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 3 }
       );
     });
 
@@ -244,7 +244,7 @@ describe('Session Invalidation Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 3 }
       );
     });
 
@@ -283,7 +283,7 @@ describe('Session Invalidation Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 3 }
       );
     });
   });

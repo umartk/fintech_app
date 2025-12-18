@@ -37,7 +37,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = emailSchema.safeParse(email);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -49,7 +49,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = emailSchema.safeParse(invalidEmail);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -79,7 +79,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = passwordSchema.safeParse(password);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -91,7 +91,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = passwordSchema.safeParse(shortPassword);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -106,7 +106,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = passwordSchema.safeParse(password);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -121,7 +121,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = passwordSchema.safeParse(password);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -136,7 +136,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = passwordSchema.safeParse(password);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });
@@ -148,7 +148,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = uuidSchema.safeParse(uuid);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -164,7 +164,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = uuidSchema.safeParse(nonUuid);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });
@@ -181,7 +181,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = positiveAmountSchema.safeParse(amount);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -193,7 +193,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = positiveAmountSchema.safeParse(amount);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -233,7 +233,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = signupSchema.safeParse(input);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -248,7 +248,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = signupSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -263,7 +263,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = signupSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });
@@ -282,7 +282,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = createTransferSchema.safeParse(input);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -300,7 +300,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = createTransferSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -315,7 +315,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = createTransferSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });
@@ -332,7 +332,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = paginationSchema.safeParse(input);
           return result.success === true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -347,7 +347,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = paginationSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
 
@@ -362,7 +362,7 @@ describe('Property 17: Input validation consistency', () => {
           const result = paginationSchema.safeParse(input);
           return result.success === false;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });
@@ -390,7 +390,7 @@ describe('Property 17: Input validation consistency', () => {
           }
           return true;
         }),
-        { numRuns: propertyConfig.numRuns }
+        { numRuns: 20 }
       );
     });
   });

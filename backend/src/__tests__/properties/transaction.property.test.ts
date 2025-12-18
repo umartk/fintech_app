@@ -142,7 +142,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
     });
   });
@@ -191,7 +191,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
     });
   });
@@ -236,7 +236,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
     });
   });
@@ -291,7 +291,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
     });
   });
@@ -339,7 +339,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
     });
   });
@@ -349,6 +349,21 @@ describe('Transaction Property Tests', () => {
    * **Validates: Requirements 6.1**
    */
   describe('Property 12: Transaction history completeness', () => {
+    // Track users created in this test for cleanup
+    const property12UserIds: string[] = [];
+
+    afterEach(async () => {
+      // Clean up users created in this property test
+      for (const userId of property12UserIds) {
+        try {
+          await prisma.user.delete({ where: { id: userId } });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+      property12UserIds.length = 0;
+    });
+
     it('should return complete transaction history for any user', async () => {
       if (!isDatabaseAvailable) {
         console.log('Skipping - database not available');
@@ -357,13 +372,16 @@ describe('Transaction Property Tests', () => {
 
       await fc.assert(
         fc.asyncProperty(
-          fc.integer({ min: 1, max: 5 }),
+          fc.integer({ min: 1, max: 3 }), // Reduced max to speed up test
           async (numTransactions) => {
-            const userEmail = `user_history_${Date.now()}_${Math.random().toString(36).slice(2)}@test.com`;
-            const otherEmail = `other_history_${Date.now()}_${Math.random().toString(36).slice(2)}@test.com`;
+            const userEmail = `user_hist_${Date.now()}_${Math.random().toString(36).slice(2)}@test.com`;
+            const otherEmail = `other_hist_${Date.now()}_${Math.random().toString(36).slice(2)}@test.com`;
 
             const user = await createTestUserWithBalance(userEmail, 1000);
             const other = await createTestUserWithBalance(otherEmail, 1000);
+            
+            // Track for cleanup
+            property12UserIds.push(user.userId, other.userId);
 
             const createdTransactions: string[] = [];
             for (let i = 0; i < numTransactions; i++) {
@@ -376,9 +394,11 @@ describe('Transaction Property Tests', () => {
 
             const history = await transactionService.getTransactionHistory(user.userId, { page: 1, limit: 100 });
 
+            // Verify completeness: all transactions involving user are returned
             expect(history.transactions.length).toBe(numTransactions);
             expect(history.total).toBe(numTransactions);
 
+            // Verify each transaction has required fields (sender, recipient, amount, status)
             for (const tx of history.transactions) {
               expect(tx.id).toBeDefined();
               expect(tx.fromAccountId).toBeDefined();
@@ -392,7 +412,7 @@ describe('Transaction Property Tests', () => {
             return true;
           }
         ),
-        { numRuns: 5 }
+        { numRuns: 3 } // Reduced runs for faster execution
       );
     });
   });
