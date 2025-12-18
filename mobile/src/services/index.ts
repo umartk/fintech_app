@@ -8,6 +8,8 @@ export { authService } from './auth';
 export { userService } from './user';
 export { paymentMethodService } from './paymentMethod';
 export { notificationService } from './notifications';
+export { biometricService } from './biometric';
+export type { BiometricType, BiometricStatus, BiometricCredentials } from './biometric';
 export type {
   PushNotification,
   NotificationType,

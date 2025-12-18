@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer, Text, Input, Button, ErrorMessage } from '../components';
@@ -7,6 +7,7 @@ import { colors, spacing } from '../theme';
 import { AuthStackParamList } from '../navigation/types';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/auth';
+import { biometricService, BiometricType } from '../services';
 import { loginSchema, parseError } from '../utils';
 import { useToast } from '../context';
 
@@ -21,8 +22,21 @@ export const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [apiError, setApiError] = useState<string | null>(null);
+  const [biometricType, setBiometricType] = useState<BiometricType>('None');
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    const checkBiometric = async () => {
+      const status = await biometricService.checkAvailability();
+      setBiometricAvailable(status.available);
+      setBiometricType(status.biometryType);
+    };
+    checkBiometric();
+  }, []);
 
   const validateForm = (): boolean => {
     const result = loginSchema.safeParse({ email, password });
@@ -61,9 +75,38 @@ export const LoginScreen: React.FC = () => {
   };
 
   const handleBiometricLogin = async () => {
-    // Biometric authentication would be implemented here
-    // For now, show a placeholder message
-    Alert.alert('Biometric Login', 'Biometric authentication is not yet configured on this device.');
+    setIsBiometricLoading(true);
+    setApiError(null);
+    try {
+      const result = await biometricService.biometricLogin();
+      
+      if (!result.success) {
+        setApiError(result.error || 'Biometric authentication failed');
+        return;
+      }
+
+      if (result.credentials) {
+        // Use stored credentials to authenticate
+        await setTokens(result.credentials.accessToken, result.credentials.refreshToken);
+        // Fetch user profile with the stored token
+        const userProfile = await authService.getProfile();
+        setUser(userProfile);
+        showSuccess('Welcome back!');
+      }
+    } catch (error: unknown) {
+      const parsed = parseError(error);
+      setApiError(parsed.message);
+      if (parsed.isNetworkError) {
+        showError('Please check your internet connection');
+      }
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
+
+  const getBiometricButtonTitle = (): string => {
+    const typeName = biometricService.getBiometricTypeName(biometricType);
+    return `Use ${typeName}`;
   };
 
   const navigateToSignup = () => {
@@ -145,11 +188,13 @@ export const LoginScreen: React.FC = () => {
             style={styles.loginButton}
           />
 
-          {biometricEnabled && (
+          {biometricEnabled && biometricAvailable && (
             <Button
-              title="Use Biometric"
+              title={getBiometricButtonTitle()}
               onPress={handleBiometricLogin}
               variant="outline"
+              loading={isBiometricLoading}
+              disabled={isBiometricLoading || isLoading}
               testID="login-biometric-button"
               style={styles.biometricButton}
             />

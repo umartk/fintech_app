@@ -17,6 +17,28 @@ jest.mock('@react-native-community/netinfo', () => ({
   }),
 }));
 
+// Mock react-native-biometrics
+jest.mock('react-native-biometrics', () => {
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => ({
+      isSensorAvailable: jest.fn().mockResolvedValue({
+        available: true,
+        biometryType: 'TouchID',
+      }),
+      biometricKeysExist: jest.fn().mockResolvedValue({ keysExist: false }),
+      createKeys: jest.fn().mockResolvedValue({ publicKey: 'mock-public-key' }),
+      deleteKeys: jest.fn().mockResolvedValue({ keysDeleted: true }),
+      simplePrompt: jest.fn().mockResolvedValue({ success: true }),
+    })),
+    BiometryTypes: {
+      TouchID: 'TouchID',
+      FaceID: 'FaceID',
+      Biometrics: 'Biometrics',
+    },
+  };
+});
+
 // Mock @react-native-clipboard/clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),

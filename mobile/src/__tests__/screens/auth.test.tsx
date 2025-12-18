@@ -138,20 +138,25 @@ describe('LoginScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Signup');
   });
 
-  it('shows biometric button when enabled', () => {
+  it('shows biometric button when enabled and available', async () => {
     useAuthStore.setState({ biometricEnabled: true });
 
-    const { getByTestId } = customRender(<LoginScreen />);
+    const { findByTestId } = customRender(<LoginScreen />);
 
-    expect(getByTestId('login-biometric-button')).toBeTruthy();
+    // Wait for biometric availability check to complete
+    const biometricButton = await findByTestId('login-biometric-button');
+    expect(biometricButton).toBeTruthy();
   });
 
-  it('hides biometric button when disabled', () => {
+  it('hides biometric button when disabled', async () => {
     useAuthStore.setState({ biometricEnabled: false });
 
     const { queryByTestId } = customRender(<LoginScreen />);
 
-    expect(queryByTestId('login-biometric-button')).toBeNull();
+    // Wait a tick for the async biometric check
+    await waitFor(() => {
+      expect(queryByTestId('login-biometric-button')).toBeNull();
+    });
   });
 });
 

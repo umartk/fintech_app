@@ -23,6 +23,7 @@
     "axios": "^1.13.2",
     "react": "19.2.0",
     "react-native": "0.83.0",
+    "react-native-biometrics": "^3.0.1",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.19.0",
     "socket.io-client": "^4.8.1",

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Switch } from 'react-native';
 import { ScreenContainer, Text, Button } from '../components';
 import { colors, spacing, borderRadius } from '../theme';
 import { useAuthStore } from '../store/authStore';
+import { biometricService, BiometricType } from '../services';
 
 interface BiometricSetupScreenProps {
   onComplete?: () => void;
@@ -13,19 +14,44 @@ export const BiometricSetupScreen: React.FC<BiometricSetupScreenProps> = ({
   onComplete,
   onSkip,
 }) => {
-  const { biometricEnabled, setBiometricEnabled } = useAuthStore();
+  const { biometricEnabled, setBiometricEnabled, accessToken, refreshToken, user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [localEnabled, setLocalEnabled] = useState(biometricEnabled);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<BiometricType>('None');
+
+  useEffect(() => {
+    const checkBiometric = async () => {
+      const status = await biometricService.checkAvailability();
+      setBiometricAvailable(status.available);
+      setBiometricType(status.biometryType);
+    };
+    checkBiometric();
+  }, []);
+
+  const getBiometricTypeName = (): string => {
+    return biometricService.getBiometricTypeName(biometricType);
+  };
 
   const handleToggleBiometric = async (value: boolean) => {
+    if (!biometricAvailable) {
+      Alert.alert('Not Available', 'Biometric authentication is not available on this device.');
+      return;
+    }
+
     setLocalEnabled(value);
     
     if (value) {
-      // In a real app, this would trigger biometric enrollment
-      // For now, we simulate the process
+      // Enable biometric with current credentials
+      if (!accessToken || !refreshToken || !user?.email) {
+        Alert.alert('Error', 'Please log in first to enable biometric authentication.');
+        setLocalEnabled(false);
+        return;
+      }
+
       Alert.alert(
-        'Enable Biometric',
-        'Would you like to enable biometric authentication for faster login?',
+        `Enable ${getBiometricTypeName()}`,
+        `Would you like to enable ${getBiometricTypeName()} for faster login?`,
         [
           {
             text: 'Cancel',
@@ -37,8 +63,19 @@ export const BiometricSetupScreen: React.FC<BiometricSetupScreenProps> = ({
             onPress: async () => {
               setIsLoading(true);
               try {
-                await setBiometricEnabled(true);
-                Alert.alert('Success', 'Biometric authentication has been enabled.');
+                const result = await biometricService.enableBiometric({
+                  email: user.email,
+                  accessToken,
+                  refreshToken,
+                });
+
+                if (result.success) {
+                  await setBiometricEnabled(true);
+                  Alert.alert('Success', `${getBiometricTypeName()} has been enabled.`);
+                } else {
+                  setLocalEnabled(false);
+                  Alert.alert('Error', result.error || 'Failed to enable biometric authentication.');
+                }
               } catch (error) {
                 setLocalEnabled(false);
                 Alert.alert('Error', 'Failed to enable biometric authentication.');
@@ -50,7 +87,17 @@ export const BiometricSetupScreen: React.FC<BiometricSetupScreenProps> = ({
         ]
       );
     } else {
-      await setBiometricEnabled(false);
+      // Disable biometric
+      setIsLoading(true);
+      try {
+        await biometricService.disableBiometric();
+        await setBiometricEnabled(false);
+      } catch (error) {
+        setLocalEnabled(true);
+        Alert.alert('Error', 'Failed to disable biometric authentication.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -80,15 +127,17 @@ export const BiometricSetupScreen: React.FC<BiometricSetupScreenProps> = ({
         <View style={styles.settingCard}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text variant="body">Enable Biometric Login</Text>
+              <Text variant="body">Enable {getBiometricTypeName()}</Text>
               <Text variant="caption" color={colors.textSecondary}>
-                Use your fingerprint or face to sign in
+                {biometricAvailable 
+                  ? `Use ${getBiometricTypeName()} to sign in`
+                  : 'Biometric authentication is not available on this device'}
               </Text>
             </View>
             <Switch
               value={localEnabled}
               onValueChange={handleToggleBiometric}
-              disabled={isLoading}
+              disabled={isLoading || !biometricAvailable}
               trackColor={{ false: colors.gray300, true: colors.primaryLight }}
               thumbColor={localEnabled ? colors.primary : colors.gray100}
               testID="biometric-toggle"
