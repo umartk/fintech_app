@@ -63,9 +63,10 @@ export const validateMultiple = (schemas: {
     for (const [target, schema] of Object.entries(schemas)) {
       if (schema) {
         try {
-          const dataToValidate = req[target as ValidationTarget];
+          const validationTarget = target as ValidationTarget;
+          const dataToValidate = req[validationTarget];
           const validated = await schema.parseAsync(dataToValidate);
-          req[target as ValidationTarget] = validated as typeof req[typeof target as ValidationTarget];
+          (req as unknown as Record<string, unknown>)[validationTarget] = validated;
         } catch (error) {
           if (error instanceof ZodError) {
             const errors = error.errors.map((err) => ({
