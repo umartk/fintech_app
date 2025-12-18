@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer, Text, Input, Button, ErrorMessage } from '../components';
@@ -100,7 +100,7 @@ export const LoginScreen: React.FC = () => {
             label="Email"
             placeholder="Enter your email"
             value={email}
-            onChangeText={(text) => {
+            onChangeText={(text: string) => {
               setEmail(text);
               if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
             }}
@@ -115,7 +115,7 @@ export const LoginScreen: React.FC = () => {
             label="Password"
             placeholder="Enter your password"
             value={password}
-            onChangeText={(text) => {
+            onChangeText={(text: string) => {
               setPassword(text);
               if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
             }}
