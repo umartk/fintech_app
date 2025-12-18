@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { validateInput } from '../middleware/validateInput';
+import { auditSecurityEvent } from '../middleware/auditLog';
 import {
   signupSchema,
   loginSchema,
@@ -16,6 +17,7 @@ const router = Router();
 router.post(
   '/signup',
   validateInput(signupSchema),
+  auditSecurityEvent('SIGNUP'),
   authController.signup.bind(authController)
 );
 
@@ -23,6 +25,7 @@ router.post(
 router.post(
   '/verify-otp',
   validateInput(otpVerificationSchema),
+  auditSecurityEvent('OTP_VERIFICATION'),
   authController.verifyOTP.bind(authController)
 );
 
@@ -30,6 +33,7 @@ router.post(
 router.post(
   '/login',
   validateInput(loginSchema),
+  auditSecurityEvent('LOGIN_SUCCESS'),
   authController.login.bind(authController)
 );
 
@@ -37,6 +41,7 @@ router.post(
 router.post(
   '/refresh',
   validateInput(refreshTokenSchema),
+  auditSecurityEvent('TOKEN_REFRESH'),
   authController.refreshToken.bind(authController)
 );
 
@@ -44,6 +49,7 @@ router.post(
 router.post(
   '/logout',
   validateInput(refreshTokenSchema),
+  auditSecurityEvent('LOGOUT'),
   authController.logout.bind(authController)
 );
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { userController } from '../controllers/user.controller';
 import { validateInput } from '../middleware/validateInput';
 import { authenticate, requireAdmin } from '../middleware/authenticate';
+import { auditSecurityEvent } from '../middleware/auditLog';
 import {
   updateProfileSchema,
   changePasswordSchema,
@@ -25,6 +26,7 @@ router.get(
 router.patch(
   '/profile',
   validateInput(updateProfileSchema),
+  auditSecurityEvent('PROFILE_UPDATE'),
   userController.updateProfile.bind(userController)
 );
 
@@ -38,6 +40,7 @@ router.get(
 router.post(
   '/change-password',
   validateInput(changePasswordSchema),
+  auditSecurityEvent('PASSWORD_CHANGE'),
   userController.changePassword.bind(userController)
 );
 
@@ -50,6 +53,7 @@ router.get(
 // POST /api/users/logout-all - Logout from all devices
 router.post(
   '/logout-all',
+  auditSecurityEvent('LOGOUT_ALL_DEVICES'),
   userController.logoutAllDevices.bind(userController)
 );
 
