@@ -13,6 +13,8 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { SecuritySettingsScreen } from '../screens/SecuritySettingsScreen';
 import { PaymentMethodsScreen } from '../screens/PaymentMethodsScreen';
 import { AddPaymentMethodScreen } from '../screens/AddPaymentMethodScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { NotificationSettingsScreen } from '../screens/NotificationSettingsScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -70,6 +72,16 @@ export const MainNavigator: React.FC = () => {
         name="AddPaymentMethod"
         component={AddPaymentMethodScreen}
         options={{ title: 'Add Payment Method' }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: 'Notifications' }}
+      />
+      <Stack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+        options={{ title: 'Notification Settings' }}
       />
     </Stack.Navigator>
   );

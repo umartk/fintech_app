@@ -7,6 +7,12 @@ export { websocketService } from './websocket';
 export { authService } from './auth';
 export { userService } from './user';
 export { paymentMethodService } from './paymentMethod';
+export { notificationService } from './notifications';
+export type {
+  PushNotification,
+  NotificationType,
+  NotificationPayload,
+} from './notifications';
 export type {
   SignupRequest,
   SignupResponse,

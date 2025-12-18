@@ -16,3 +16,5 @@ export { ProfileScreen } from './ProfileScreen';
 export { SecuritySettingsScreen } from './SecuritySettingsScreen';
 export { PaymentMethodsScreen } from './PaymentMethodsScreen';
 export { AddPaymentMethodScreen } from './AddPaymentMethodScreen';
+export { NotificationsScreen } from './NotificationsScreen';
+export { NotificationSettingsScreen } from './NotificationSettingsScreen';

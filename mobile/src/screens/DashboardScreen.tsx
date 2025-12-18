@@ -13,6 +13,7 @@ import { colors, spacing, borderRadius } from '../theme';
 import { useAccountStore } from '../store/accountStore';
 import { useTransactionStore, Transaction } from '../store/transactionStore';
 import { useAuthStore } from '../store/authStore';
+import { useNotificationStore } from '../store/notificationStore';
 import { websocketService } from '../services/websocket';
 import api from '../services/api';
 import { MainStackParamList } from '../navigation/types';
@@ -26,6 +27,7 @@ type DashboardNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Da
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<DashboardNavigationProp>();
   const { user } = useAuthStore();
+  const { unreadCount } = useNotificationStore();
   const {
     account,
     isLoading: accountLoading,
@@ -318,16 +320,32 @@ export const DashboardScreen: React.FC = () => {
         <Text variant="h2">
           Hello, {user?.firstName || 'there'}
         </Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}
-          testID="profile-button"
-        >
-          <View style={styles.profileIcon}>
-            <Text variant="body" color={colors.white}>
-              {user?.firstName?.[0]?.toUpperCase() || 'U'}
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+            testID="notifications-button"
+            style={styles.notificationButton}
+          >
+            <Text variant="body">🔔</Text>
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text variant="caption" color={colors.white} style={styles.badgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Profile')}
+            testID="profile-button"
+          >
+            <View style={styles.profileIcon}>
+              <Text variant="body" color={colors.white}>
+                {user?.firstName?.[0]?.toUpperCase() || 'U'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -366,6 +384,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: spacing.xs,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.error,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   profileIcon: {
     width: 40,

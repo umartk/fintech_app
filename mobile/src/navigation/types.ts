@@ -24,6 +24,8 @@ export type MainStackParamList = {
   SecuritySettings: undefined;
   PaymentMethods: undefined;
   AddPaymentMethod: undefined;
+  Notifications: undefined;
+  NotificationSettings: undefined;
 };
 
 // Navigation prop types for screens

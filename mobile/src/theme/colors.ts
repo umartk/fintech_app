@@ -30,9 +30,13 @@ export const colors = {
 
   // Status colors
   success: '#10B981',
+  successLight: '#D1FAE5',
   warning: '#F59E0B',
+  warningLight: '#FEF3C7',
   error: '#EF4444',
+  errorLight: '#FEE2E2',
   info: '#3B82F6',
+  infoLight: '#DBEAFE',
 
   // Background colors
   background: '#FFFFFF',

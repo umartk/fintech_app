@@ -14,6 +14,7 @@ import { colors, spacing, borderRadius } from '../theme';
 import { useAccountStore } from '../store/accountStore';
 import { useTransactionStore } from '../store/transactionStore';
 import api from '../services/api';
+import { notificationService } from '../services/notifications';
 import { MainStackParamList } from '../navigation/types';
 import { validateEmail } from '../utils/validation';
 
@@ -76,6 +77,15 @@ export const SendMoneyScreen: React.FC = () => {
 
       const transaction = response.data.transaction;
       addTransaction(transaction);
+
+      // Create notification for sent money (Requirements: 4.4)
+      notificationService.createTransactionNotification(
+        'sent',
+        transaction.id,
+        parseFloat(amount),
+        account?.currency || 'USD',
+        recipient.trim()
+      );
 
       Alert.alert(
         'Transfer Initiated',

@@ -290,6 +290,17 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.actionText}>Payment Methods</Text>
             <Text style={styles.actionArrow}>›</Text>
           </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={() => navigation.navigate('NotificationSettings')}
+            testID="notification-settings-link"
+          >
+            <Text style={styles.actionText}>Notification Settings</Text>
+            <Text style={styles.actionArrow}>›</Text>
+          </TouchableOpacity>
         </Card>
       </ScrollView>
     </ScreenContainer>
