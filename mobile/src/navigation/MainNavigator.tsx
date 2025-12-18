@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainStackParamList } from './types';
 import { colors } from '../theme';
 
+// Implemented screens
+import { DashboardScreen } from '../screens/DashboardScreen';
 // Placeholder screens - will be implemented in later tasks
 import { PlaceholderScreen } from '../screens/PlaceholderScreen';
 
@@ -20,7 +22,7 @@ export const MainNavigator: React.FC = () => {
     >
       <Stack.Screen
         name="Dashboard"
-        component={PlaceholderScreen}
+        component={DashboardScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
