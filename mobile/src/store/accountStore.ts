@@ -25,6 +25,8 @@ interface AccountState {
   lastUpdated: Date | null;
   setAccount: (account: Account | null) => void;
   setPaymentMethods: (methods: PaymentMethod[]) => void;
+  addPaymentMethod: (method: PaymentMethod) => void;
+  removePaymentMethod: (methodId: string) => void;
   updateBalance: (balance: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -43,6 +45,16 @@ export const useAccountStore = create<AccountState>((set, get) => ({
   setAccount: (account) => set({ account, lastUpdated: new Date(), error: null }),
 
   setPaymentMethods: (paymentMethods) => set({ paymentMethods }),
+
+  addPaymentMethod: (method) => {
+    const { paymentMethods } = get();
+    set({ paymentMethods: [...paymentMethods, method] });
+  },
+
+  removePaymentMethod: (methodId) => {
+    const { paymentMethods } = get();
+    set({ paymentMethods: paymentMethods.filter(m => m.id !== methodId) });
+  },
 
   updateBalance: (balance) => {
     const { account } = get();

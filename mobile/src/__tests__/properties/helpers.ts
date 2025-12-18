@@ -30,7 +30,7 @@ export const transactionArbitrary = fc.record({
   currency: fc.constantFrom('USD', 'EUR', 'GBP'),
   type: fc.constantFrom('transfer', 'deposit', 'withdrawal'),
   status: fc.constantFrom('pending', 'completed', 'failed', 'cancelled'),
-  createdAt: fc.date(),
+  createdAt: fc.date().map((d) => d.toISOString()),
 });
 
 // Property test configuration
