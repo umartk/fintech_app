@@ -2,6 +2,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import prisma from '../config/database';
 import { AppError, NotFoundError } from '../middleware/errorHandler';
 import { TransactionStatus, TransactionType } from '@prisma/client';
+import { broadcastTransactionUpdate } from '../websocket';
 
 export interface CreateTransferInput {
   fromUserId: string;
@@ -131,6 +132,22 @@ export class TransactionService {
 
       return newTransaction;
     });
+
+    // Broadcast real-time update to both sender and recipient
+    // Validates: Requirements 8.1, 8.4
+    try {
+      await broadcastTransactionUpdate({
+        transactionId: transaction.id,
+        status: transaction.status,
+        amount: transaction.amount.toNumber(),
+        fromUserId,
+        toUserId,
+        timestamp: transaction.processedAt || new Date(),
+      });
+    } catch (error) {
+      // Log but don't fail the transaction if broadcast fails
+      console.error('Failed to broadcast transaction update:', error);
+    }
 
     return this.formatTransaction(transaction);
   }
