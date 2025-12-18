@@ -2,6 +2,16 @@ import { z } from 'zod';
 
 export const emailSchema = z.string().email('Invalid email address');
 
+/**
+ * Validates an email address format
+ * @param email - The email string to validate
+ * @returns true if the email is valid, false otherwise
+ */
+export const validateEmail = (email: string): boolean => {
+  const result = emailSchema.safeParse(email);
+  return result.success;
+};
+
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')

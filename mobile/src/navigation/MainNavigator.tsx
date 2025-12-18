@@ -5,6 +5,10 @@ import { colors } from '../theme';
 
 // Implemented screens
 import { DashboardScreen } from '../screens/DashboardScreen';
+import { SendMoneyScreen } from '../screens/SendMoneyScreen';
+import { ReceiveMoneyScreen } from '../screens/ReceiveMoneyScreen';
+import { TransactionDetailScreen } from '../screens/TransactionDetailScreen';
+import { TransactionHistoryScreen } from '../screens/TransactionHistoryScreen';
 // Placeholder screens - will be implemented in later tasks
 import { PlaceholderScreen } from '../screens/PlaceholderScreen';
 
@@ -27,22 +31,22 @@ export const MainNavigator: React.FC = () => {
       />
       <Stack.Screen
         name="SendMoney"
-        component={PlaceholderScreen}
+        component={SendMoneyScreen}
         options={{ title: 'Send Money' }}
       />
       <Stack.Screen
         name="ReceiveMoney"
-        component={PlaceholderScreen}
+        component={ReceiveMoneyScreen}
         options={{ title: 'Receive Money' }}
       />
       <Stack.Screen
         name="TransactionHistory"
-        component={PlaceholderScreen}
+        component={TransactionHistoryScreen}
         options={{ title: 'Transaction History' }}
       />
       <Stack.Screen
         name="TransactionDetail"
-        component={PlaceholderScreen}
+        component={TransactionDetailScreen}
         options={{ title: 'Transaction Details' }}
       />
       <Stack.Screen
