@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from '../utils/secureStorage';
 
-interface User {
+export interface User {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
+  kycStatus?: 'pending' | 'verified' | 'rejected';
 }
 
 interface AuthState {
@@ -14,10 +16,17 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  biometricEnabled: boolean;
+  pendingUserId: string | null;
+  pendingEmail: string | null;
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   clearAuth: () => Promise<void>;
   loadStoredAuth: () => Promise<void>;
+  setBiometricEnabled: (enabled: boolean) => Promise<void>;
+  loadBiometricSetting: () => Promise<void>;
+  setPendingVerification: (userId: string, email: string) => void;
+  clearPendingVerification: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,6 +35,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: null,
   isAuthenticated: false,
   isLoading: true,
+  biometricEnabled: false,
+  pendingUserId: null,
+  pendingEmail: null,
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
 
@@ -65,5 +77,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('Error loading stored auth:', error);
       set({ isLoading: false });
     }
+  },
+
+  setBiometricEnabled: async (enabled) => {
+    await secureStorage.setItem('BIOMETRIC_ENABLED', enabled ? 'true' : 'false');
+    set({ biometricEnabled: enabled });
+  },
+
+  loadBiometricSetting: async () => {
+    try {
+      const enabled = await secureStorage.getItem('BIOMETRIC_ENABLED');
+      set({ biometricEnabled: enabled === 'true' });
+    } catch (error) {
+      console.error('Error loading biometric setting:', error);
+    }
+  },
+
+  setPendingVerification: (userId, email) => {
+    set({ pendingUserId: userId, pendingEmail: email });
+  },
+
+  clearPendingVerification: () => {
+    set({ pendingUserId: null, pendingEmail: null });
   },
 }));

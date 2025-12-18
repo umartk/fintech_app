@@ -2,9 +2,12 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthStackParamList } from './types';
 import { colors } from '../theme';
-
-// Placeholder screens - will be implemented in task 13
-import { PlaceholderScreen } from '../screens/PlaceholderScreen';
+import {
+  LoginScreen,
+  SignupScreen,
+  OTPVerificationScreen,
+  PlaceholderScreen,
+} from '../screens';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -16,9 +19,9 @@ export const AuthNavigator: React.FC = () => {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="Login" component={PlaceholderScreen} />
-      <Stack.Screen name="Signup" component={PlaceholderScreen} />
-      <Stack.Screen name="OTPVerification" component={PlaceholderScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
       <Stack.Screen name="ForgotPassword" component={PlaceholderScreen} />
     </Stack.Navigator>
   );
