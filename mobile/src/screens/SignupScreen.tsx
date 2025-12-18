@@ -96,7 +96,7 @@ export const SignupScreen: React.FC = () => {
             label="Email"
             placeholder="Enter your email"
             value={email}
-            onChangeText={(text) => {
+            onChangeText={(text: string) => {
               setEmail(text);
               if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
             }}
@@ -111,7 +111,7 @@ export const SignupScreen: React.FC = () => {
             label="Password"
             placeholder="Create a password"
             value={password}
-            onChangeText={(text) => {
+            onChangeText={(text: string) => {
               setPassword(text);
               if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
             }}
@@ -130,7 +130,7 @@ export const SignupScreen: React.FC = () => {
             label="Confirm Password"
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChangeText={(text) => {
+            onChangeText={(text: string) => {
               setConfirmPassword(text);
               if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
             }}
