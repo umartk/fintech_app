@@ -75,6 +75,9 @@ model Transaction {
   @@index([fromAccountId])
   @@index([toAccountId])
   @@index([createdAt])
+  @@index([status])
+  @@index([fromAccountId, createdAt(sort: Desc)])
+  @@index([toAccountId, createdAt(sort: Desc)])
   @@map("transactions")
 }
 
@@ -109,6 +112,7 @@ model RefreshToken {
 
   @@index([userId])
   @@index([token])
+  @@index([expiresAt])
   @@map("refresh_tokens")
 }
 
@@ -123,6 +127,8 @@ model OtpCode {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
+  @@index([userId, verified])
   @@map("otp_codes")
 }
 
